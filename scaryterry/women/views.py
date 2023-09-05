@@ -1,5 +1,5 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 
 from women.models import Women, Category
 
@@ -46,21 +46,28 @@ def login(request):
     return HttpResponse('Авторизация')
 
 
-def show_post(request, post_id):
-    return HttpResponse(f'Показана статья с id {post_id}')
-
-
-def show_category(request, cat_id):
-    posts = Women.objects.filter(cat_id=cat_id)
+def show_post(request, post_slug):
+    post = get_object_or_404(Women, slug=post_slug)
     cats = Category.objects.all()
-
-    if len(posts) == 0:
-        raise Http404()
     context = {
-        'title': "Рубрики",
-        'cats': cats,
+        'post': post,
         'menu': menu,
+        'cats': cats,
+        'title': post.title,
+        'cat_selected': post.cat_id,
+    }
+
+    return render(request, 'women/post.html', context=context)
+
+
+def show_category(request, cat_slug):
+    cat = get_object_or_404(Category, slug=cat_slug)
+    posts = Women.objects.filter(cat_id=cat.pk)
+    context = {
+        'title': "Главная страница",
+        'menu': menu,
+        'cats': Category.objects.all(),
+        'cat_selected': cat.pk,
         'posts': posts,
-        'cat_selected': cat_id,
     }
     return render(request, 'women/index.html', context=context)

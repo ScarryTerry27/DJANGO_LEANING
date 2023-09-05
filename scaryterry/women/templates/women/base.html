@@ -38,7 +38,6 @@
 		{% else %}
 			<li><a href="{% url 'home' %}">Все категории</a></li>
 		{% endif %}
-
 		{% for c in cats %}
 			{% if c.pk == cat_selected %}
 				<li class="selected">{{c.name}}</li>
