@@ -1,7 +1,8 @@
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 
-from women.models import Women, Category
+from .forms import *
+from .models import *
 
 menu = [
     {'title': 'О сайте', 'url_name': 'about'},
@@ -26,7 +27,8 @@ def index(request):
 
 
 def about(request):
-    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu})
+    cats = Category.objects.all()
+    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': menu, 'cats': cats})
 
 
 def pageNotFound(request, exception):
@@ -35,7 +37,25 @@ def pageNotFound(request, exception):
 
 
 def addpage(request):
-    return HttpResponse('Добавить статью')
+    cats = Category.objects.all()
+    if request.method == 'POST':
+        form = AddPostForm(request.POST)
+        if form.is_valid():
+            try:
+                Women.objects.create(**form.cleaned_data)
+                return redirect('home')
+            except:
+                form.add_error(None, 'Ошибка добавления поста')
+    else:
+        form = AddPostForm()
+
+    context = {
+        'menu': menu,
+        'title': 'Создать статью',
+        'form': form,
+        'cats': cats,
+    }
+    return render(request, 'women/addpage.html', context=context)
 
 
 def contact(request):
