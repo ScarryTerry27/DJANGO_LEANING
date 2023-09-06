@@ -4,7 +4,7 @@
 <h1>{{ title }}</h1>
 
 
-<form action="{% url 'addpage' %}" method="post">
+<form action="{% url 'addpage' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}  <!--в целях безопасности(формируется каждый раз токен)-->
     <div class="form-error">{{form.non_field_errors}}</div>
     {% for f in form %}
