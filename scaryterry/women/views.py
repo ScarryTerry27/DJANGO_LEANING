@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
@@ -42,8 +43,12 @@ class WomenHome(DataMixin, ListView):
 
 # @login_required  только зарег пользователей
 def about(request):
+    contact_list = Women.objects.all()
+    paginator = Paginator(contact_list, 3)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)  # пагинация внутри функции представления
     cats = Category.objects.annotate(Count('women'))
-    return render(request, 'women/about.html', {'title': 'О сайте', 'menu': DataMixin.menu, 'cats': cats, \
+    return render(request, 'women/about.html', {'page_obj': page_obj, 'title': 'О сайте', 'menu': DataMixin.menu, 'cats': cats, \
                                                 'cat_selected': -1})
 
 

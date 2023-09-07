@@ -4,6 +4,7 @@ from .models import *
 
 
 class DataMixin:
+    paginate_by = 3
     menu = [
         {'title': 'О сайте', 'url_name': 'about'},
         {'title': 'Добавить статью', 'url_name': 'addpage'},
