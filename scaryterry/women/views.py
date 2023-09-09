@@ -23,8 +23,11 @@ class WomenHome(DataMixin, ListView):
         return dict(list(context.items())+list(c_def.items()))
 
     def get_queryset(self):
-        # выбираем что отображать на странице
-        return Women.objects.filter(is_published=True)
+        wom_filter = cache.get('wom_filter')
+        if not wom_filter:
+            wom_filter = Women.objects.filter(is_published=True).select_related('cat')
+            cache.set('wom_filter', wom_filter, 60)
+        return wom_filter
 
 # # def index(request):
 # '''функциональное представление класса WomenHome'''
@@ -132,13 +135,21 @@ class WomenCategory(DataMixin, ListView):
     allow_empty = False
 
     def get_queryset(self):
-        return Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True)
+        wom_fil = cache.get('wom_fil')
+        if not wom_fil:
+            wom_fil = Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True).select_related('cat')
+            cache.set('wom_fil', wom_fil, 60)
+        return wom_fil
 
     def get_context_data(self, *args, object_list=None, **kwargs):
         # здесь формируем что передаем в шаблон
         context = super().get_context_data(**kwargs)
-        c_def = self.get_user_context(title=f"Категория {context['posts'][0].cat}", \
-                                      cat_selected=context['posts'][0].cat_id)
+        c = cache.get('c')
+        if not c:
+            c = Category.objects.get(slug=self.kwargs['cat_slug'])
+            cache.set('c', c, 60)
+
+        c_def = self.get_user_context(title=f"Категория {c.name}", cat_selected=c.pk)
         return dict(list(context.items()) + list(c_def.items()))
 
 
