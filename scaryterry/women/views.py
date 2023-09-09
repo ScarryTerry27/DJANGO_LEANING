@@ -50,8 +50,11 @@ def about(request):
     paginator = Paginator(contact_list, 3)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)  # пагинация внутри функции представления
-    cats = Category.objects.annotate(Count('women'))
-    return render(request, 'women/about.html', {'page_obj': page_obj, 'title': 'О сайте', 'menu': DataMixin.menu, 'cats': cats, \
+    cats_count = cache.get('cats_count')
+    if not cats_count:
+        cats_count = Category.objects.annotate(Count('women'))
+        cats_count = cache.set('cats_count', cats_count, 60)
+    return render(request, 'women/about.html', {'page_obj': page_obj, 'title': 'О сайте', 'menu': DataMixin.menu, 'cats': cats_count, \
                                                 'cat_selected': -1})
 
 
@@ -144,11 +147,7 @@ class WomenCategory(DataMixin, ListView):
     def get_context_data(self, *args, object_list=None, **kwargs):
         # здесь формируем что передаем в шаблон
         context = super().get_context_data(**kwargs)
-        c = cache.get('c')
-        if not c:
-            c = Category.objects.get(slug=self.kwargs['cat_slug'])
-            cache.set('c', c, 60)
-
+        c = Category.objects.get(slug=self.kwargs['cat_slug'])
         c_def = self.get_user_context(title=f"Категория {c.name}", cat_selected=c.pk)
         return dict(list(context.items()) + list(c_def.items()))
 
